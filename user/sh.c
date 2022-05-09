@@ -128,9 +128,15 @@ void runcmd(struct cmd *cmd) {
 	exit(0);
 }
 
+/**
+ * 从标准输入获取字符数据
+ * @param buf 暂存区
+ * @param nbuf 暂存区尺寸（大小）单位: byte(8bit)
+ * @return int
+ */
 int getcmd(char *buf, int nbuf) {
 	fprintf(2, "$ ");
-	memset(buf, 0, nbuf);
+	memset(buf, 0, nbuf);  // 将 buf 重置为0
 	gets(buf, nbuf);
 	if (buf[0] == 0) // EOF
 		return -1;

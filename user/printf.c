@@ -94,8 +94,10 @@ vprintf(int fd, const char *fmt, va_list ap)
   }
 }
 
-void
-fprintf(int fd, const char *fmt, ...)
+/**
+* int fd: file descriptor
+*/
+void fprintf(int fd, const char *fmt, ...)
 {
   va_list ap;
 
