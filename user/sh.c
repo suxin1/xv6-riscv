@@ -1,4 +1,6 @@
 // Shell.
+// this program will be executed when return button was hit.
+// 此程序只在用户按下回车键后执行
 
 #include "kernel/types.h"
 #include "user/user.h"
