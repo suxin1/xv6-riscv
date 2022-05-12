@@ -42,7 +42,7 @@ main(void)
       // 子进程永远都不会执行到这里
       // this call to wait() returns if the shell exits,
       // or if a parentless process exits.
-      wpid = wait((int *) 0);
+      wpid = wait((int *) 0); // wait 是一个阻塞函数
       if(wpid == pid){
         // the shell exited; restart it.
         break;
