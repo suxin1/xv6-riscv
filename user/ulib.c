@@ -45,14 +45,22 @@ strchr(const char *s, char c) {
   return 0;
 }
 
-char *
-gets(char *buf, int max) {
+/**
+ * 从标准输入（standard input）读取字符数据
+ * 遇到 \n || \r 或 read 读取数量为 0 时停止读取
+ * @param buf : 字符缓冲区
+ * @param max : 读取字符数量
+ * @return char * : 以 \0 结尾
+ */
+char *gets(char *buf, int max) {
   int i, cc;
   char c;
 
   for (i = 0; i + 1 < max;) {
     // 这里硬件会反复转换应用程序权限，可能会比较耗时
-    cc = read(0, &c, 1); // 从 standard input 读取1个字节（byte）数据到 c
+    // 从 standard input 复制1个字节（byte）数据到 c 并返回读取数量
+    // 每个文件描述器关联一个 offset 属性， 每次 read 从 offset 开始读取数据并将读取到的字符数累加到 offset
+    cc = read(0, &c, 1);
     if (cc < 1)
       break;
     buf[i++] = c;
