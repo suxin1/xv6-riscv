@@ -31,12 +31,15 @@ main(void)
       exit(1);
     }
     if(pid == 0){
+      // 子进程中调用 exec，用新程序的空间覆盖掉改子进程的空间，由新程序来决定何时终止子进程
+      printf("init child process");
       exec("sh", argv);
       printf("init: exec sh failed\n");
       exit(1);
     }
 
     for(;;){
+      // 子进程永远都不会执行到这里
       // this call to wait() returns if the shell exits,
       // or if a parentless process exits.
       wpid = wait((int *) 0);
