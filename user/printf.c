@@ -95,8 +95,11 @@ vprintf(int fd, const char *fmt, va_list ap)
 }
 
 /**
-* int fd: file descriptor
-*/
+ * 打印到 文件描述器 (file descriptor)
+ * @param fd: [0: standard input, 1: standard output, 2: standard error]
+ * @param fmt: char 类型指针
+ * @param ...
+ */
 void fprintf(int fd, const char *fmt, ...)
 {
   va_list ap;
