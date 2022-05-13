@@ -264,6 +264,7 @@ char symbols[] = "<|>&;()";
  *   "| cat": 返回 "|", *q 指向 "|", *eq 指向 *q + 1, *ps 指向 "c";
  *   ">> filename": 返回 "+", *q 指向 ">", *eq 指向 *q + 2, *ps 指向 "f";
  *   " filename": 返回 "a", *q 指向 "f", *eq 指向 *q + 8, *ps 指向 *q + 8;
+ *   ""：返回 0，结束字符
  */
 int gettoken(char **ps, char *es, char **q, char **eq) {
   char *s;
@@ -347,21 +348,51 @@ struct cmd *parsecmd(char *s) {
   return cmd;
 }
 
+/**
+ * 命令列表（顺序执行命令，前后无关联）
+ * cmd
+ *   |- type: LIST
+ *   |- cmd: left
+ *      |- type: BACK
+ *      |- cmd: cmd
+ *         |- type: EXEC | PIPE | REDIR
+ *   |- cmd: right
+ *      |- type: EXEC
+ * 返回 struct cmd 类型: LIST | BACK | PIPE | REDIR | EXEC
+ */
 struct cmd *parseline(char **ps, char *es) {
   struct cmd *cmd;
 
   cmd = parsepipe(ps, es);
   while (peek(ps, es, "&")) {
     gettoken(ps, es, 0, 0);
-    cmd = backcmd(cmd);
+    cmd = backcmd(cmd);  // 后台执行命令
   }
   if (peek(ps, es, ";")) {
-    gettoken(ps, es, 0, 0);
+    gettoken(ps, es, 0, 0); // 顺序执行命令，前后没有关联
     cmd = listcmd(cmd, parseline(ps, es));
   }
   return cmd;
 }
 
+/**
+ * 管道命令
+ * 最终返回的数据结构可能像下面这样：
+ * cmd
+ *   |- type: PIPE
+ *   |- cmd: left
+ *      |- type: REDIR
+ *      |- cmd: cmd
+ *         |- type: EXEC
+ *   |- cmd: right
+ *      |- type: EXEC
+ *
+ * cmd | cmd | cmd
+ * L   | R        |   pipecmd1
+ *     | L   | R  |   pipecmd1 -> right
+ *
+ * 返回 struct cmd 类型: REDIR | EXEC | PIPE
+ */
 struct cmd *parsepipe(char **ps, char *es) {
   struct cmd *cmd;
 
@@ -373,9 +404,13 @@ struct cmd *parsepipe(char **ps, char *es) {
   return cmd;
 }
 
+/**
+ * 如果字符串非空白起始字符包含重定向标记 '<' 或 '>'
+ * 则返回一个被强制转换为 cmd 的 redircmd，并将 *ps 指针指向剩余未处理字符的第一个字符
+ */
 struct cmd *parseredirs(struct cmd *cmd, char **ps, char *es) {
   int tok;
-  char *q, *eq;
+  char *q, *eq;  // q: 文件字符串起始指针，eq: 文件字符串结束指针
 
   while (peek(ps, es, "<>")) {
     tok = gettoken(ps, es, 0, 0);
@@ -383,12 +418,15 @@ struct cmd *parseredirs(struct cmd *cmd, char **ps, char *es) {
       panic("missing file for redirection");
     switch (tok) {
       case '<':
+        // 将文件重定向到标准输入
         cmd = redircmd(cmd, q, eq, O_RDONLY, 0);
         break;
       case '>':
+        // 将文件以可写，可创建，重定向到标准输出
         cmd = redircmd(cmd, q, eq, O_WRONLY | O_CREATE | O_TRUNC, 1);
         break;
       case '+':  // >>
+        // 将文件以可写，可创建重定向到标准输出
         cmd = redircmd(cmd, q, eq, O_WRONLY | O_CREATE, 1);
         break;
     }
@@ -410,6 +448,18 @@ struct cmd *parseblock(char **ps, char *es) {
   return cmd;
 }
 
+/**
+ * 从字符串中解析出可执行命令，遇到 "|)&;" 时停止解析并返回一个 cmd 结构体
+ * 最终返回的数据结构可能像下面这样：
+ * cmd
+ *   |- type: REDIR
+ *   |- cmd
+ *      |- type: REDIR
+ *      |- cmd: cmd
+ *         |- type: EXEC
+ * type: 的作用是方便后续执行命令时将其转换为对应 命令 的 数据结构
+ * 返回 struct cmd 类型: REDIR | EXEC
+ */
 struct cmd *parseexec(char **ps, char *es) {
   char *q, *eq;
   int tok, argc;
@@ -419,10 +469,12 @@ struct cmd *parseexec(char **ps, char *es) {
   if (peek(ps, es, "("))
     return parseblock(ps, es);
 
-  ret = execcmd();
+  ret = execcmd();  // 被强制转换为 struct cmd * 的 struct execcmd * 的指针
   cmd = (struct execcmd *) ret;
 
   argc = 0; // argument count
+
+  // 被强制转换为 struct cmd * 的 struct redircmd * | struct execcmd * 的指针
   ret = parseredirs(ret, ps, es);
   while (!peek(ps, es, "|)&;")) {
     if ((tok = gettoken(ps, es, &q, &eq)) == 0)
@@ -442,6 +494,9 @@ struct cmd *parseexec(char **ps, char *es) {
 }
 
 // NUL-terminate all the counted strings.
+// 将所有命令中包含的结尾字符赋值为0，使其变为一个有效的字符串
+// ls filename1 filename20
+// ls0filename10filename20
 struct cmd *nulterminate(struct cmd *cmd) {
   int i;
   struct backcmd *bcmd;
