@@ -92,7 +92,9 @@ runcmd(struct cmd *cmd) {
 
     case LIST:
       lcmd = (struct listcmd *) cmd;
-      if (fork1() == 0)
+      int pid = fork1();
+      printf("List command pid: %d\n", pid);
+      if (pid == 0)
         runcmd(lcmd->left);
       wait(0);
       runcmd(lcmd->right);
@@ -358,6 +360,7 @@ struct cmd *parsecmd(char *s) {
  *         |- type: EXEC | PIPE | REDIR
  *   |- cmd: right
  *      |- type: EXEC
+ *
  * 返回 struct cmd 类型: LIST | BACK | PIPE | REDIR | EXEC
  */
 struct cmd *parseline(char **ps, char *es) {
