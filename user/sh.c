@@ -423,6 +423,15 @@ struct cmd *parsepipe(char **ps, char *es) {
 /**
  * 如果字符串非空白起始字符包含重定向标记 '<' 或 '>'
  * 则返回一个被强制转换为 cmd 的 redircmd，并将 *ps 指针指向剩余未处理字符的第一个字符
+ * 重定向规则与语法:
+ *  command > file	将输出重定向到 file
+ *  command < file	将输入重定向到 file
+ *  command >> file	将输出以追加的方式重定向到 file
+ *  n > file	将文件描述符为 n 的文件重定向到 file
+ *  n >> file	将文件描述符为 n 的文件以追加的方式重定向到 file
+ *  n >& m	将输出文件 m 和 n 合并
+ *  n <& m	将输入文件 m 和 n 合并
+ *  << tag	将开始标记 tag 和结束标记 tag 之间的内容作为输入
  */
 struct cmd *parseredirs(struct cmd *cmd, char **ps, char *es) {
   int tok;
