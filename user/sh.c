@@ -31,6 +31,7 @@ struct redircmd {
     char *efile;
     int mode;
     int fd;
+    int sfd;
 };
 
 struct pipecmd {
@@ -92,10 +93,9 @@ runcmd(struct cmd *cmd) {
 
     case LIST:
       lcmd = (struct listcmd *) cmd;
-      int pid = fork1();
-      printf("List command pid: %d\n", pid);
-      if (pid == 0)
+      if (fork1() == 0) {
         runcmd(lcmd->left);
+      }
       wait(0);
       runcmd(lcmd->right);
       break;
@@ -256,6 +256,7 @@ struct cmd *backcmd(struct cmd *subcmd) {
 
 char whitespace[] = " \t\r\n\v";
 char symbols[] = "<|>&;()";
+char descriptors[] = "012";
 
 
 /**
@@ -267,6 +268,7 @@ char symbols[] = "<|>&;()";
  *   ">> filename": 返回 "+", *q 指向 ">", *eq 指向 *q + 2, *ps 指向 "f";
  *   " filename": 返回 "a", *q 指向 "f", *eq 指向 *q + 8, *ps 指向 *q + 8;
  *   ""：返回 0，结束字符
+ *   TODO "2>&1": implement
  */
 int gettoken(char **ps, char *es, char **q, char **eq) {
   char *s;
@@ -293,6 +295,17 @@ int gettoken(char **ps, char *es, char **q, char **eq) {
       s++;
       if (*s == '>') {
         ret = '+';
+        s++;
+      }
+      break;
+    case '0':
+    case '1':
+    case '2':
+      s++;
+      while (s < es && strchr(whitespace, *s))
+        s++;
+      if(*s == '>') {
+        ret = 'd';
         s++;
       }
       break;
@@ -432,6 +445,11 @@ struct cmd *parseredirs(struct cmd *cmd, char **ps, char *es) {
         // 将文件以可写，可创建重定向到标准输出
         cmd = redircmd(cmd, q, eq, O_WRONLY | O_CREATE, 1);
         break;
+      case 'd':
+        int fd = atoi(*q);
+//        if (gettoken(ps, es, &q, &eq) != 'a') {
+//          panic("missing file descriptor for redirection");
+//        }
     }
   }
   return cmd;
