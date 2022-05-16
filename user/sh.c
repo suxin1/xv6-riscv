@@ -298,17 +298,6 @@ int gettoken(char **ps, char *es, char **q, char **eq) {
         s++;
       }
       break;
-    case '0':
-    case '1':
-    case '2':
-      s++;
-      while (s < es && strchr(whitespace, *s))
-        s++;
-      if(*s == '>') {
-        ret = 'd';
-        s++;
-      }
-      break;
     default:
       ret = 'a';
       while (s < es && !strchr(whitespace, *s) && !strchr(symbols, *s))

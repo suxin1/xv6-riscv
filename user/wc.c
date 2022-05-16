@@ -19,7 +19,7 @@ wc(int fd, char *name)
         l++;
       if(strchr(" \r\t\n\v", buf[i]))
         inword = 0;
-      else if(!inword){
+      else if(!inword) {
         w++;
         inword = 1;
       }
