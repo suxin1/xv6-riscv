@@ -51,6 +51,10 @@ forktest(void)
 int
 main(void)
 {
-  forktest();
+//  forktest();
+  fork();
+  fork();
+  fork();
+  print("a");
   exit(0);
 }

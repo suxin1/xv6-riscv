@@ -380,6 +380,7 @@ struct cmd *parseline(char **ps, char *es) {
   return cmd;
 }
 
+
 /**
  * 管道命令
  * 最终返回的数据结构可能像下面这样：
@@ -408,6 +409,7 @@ struct cmd *parsepipe(char **ps, char *es) {
   }
   return cmd;
 }
+
 
 /**
  * 如果字符串非空白起始字符包含重定向标记 '<' 或 '>'
@@ -443,15 +445,11 @@ struct cmd *parseredirs(struct cmd *cmd, char **ps, char *es) {
         // 将文件以可写，可创建重定向到标准输出
         cmd = redircmd(cmd, q, eq, O_WRONLY | O_CREATE, 1);
         break;
-      case 'd':
-        int fd = atoi(*q);
-//        if (gettoken(ps, es, &q, &eq) != 'a') {
-//          panic("missing file descriptor for redirection");
-//        }
     }
   }
   return cmd;
 }
+
 
 struct cmd *parseblock(char **ps, char *es) {
   struct cmd *cmd;

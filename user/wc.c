@@ -42,8 +42,8 @@ main(int argc, char *argv[])
     exit(0);
   }
 
-  for(i = 1; i < argc; i++){
-    if((fd = open(argv[i], 0)) < 0){
+  for(i = 1; i < argc; i++) {
+    if((fd = open(argv[i], 0)) < 0) {
       printf("wc: cannot open %s\n", argv[i]);
       exit(1);
     }
