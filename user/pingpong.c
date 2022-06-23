@@ -19,8 +19,8 @@ void pingpong(int infd, int outfd, char processCode) {
   if (processCode == 'A') write(outfd, ball, 1);
 
   while(read(infd, &c, 1) > 0) {
-    if(processCode == 'A') fprintf(1, "A to B");
-    else fprintf(1, "B to A");
+    if(processCode == 'A') fprintf(1, "A to B\n");
+    else fprintf(1, "B to A\n");
     if(++count > 1000) break;
     write(outfd, ball, 1);
   }
